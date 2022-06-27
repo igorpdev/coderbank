@@ -12,6 +12,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 
 import org.hibernate.annotations.Type;
+import org.hibernate.validator.constraints.br.CPF;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,6 +38,7 @@ public class Cliente implements Serializable {
     private String nome;
 
     @NotBlank
+    @CPF
     @Column(nullable = false, unique = true, length = 11)
     private String cpf;
 
