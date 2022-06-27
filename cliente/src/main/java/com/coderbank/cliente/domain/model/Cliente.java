@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
 
 import org.hibernate.annotations.Type;
 
@@ -31,9 +32,11 @@ public class Cliente implements Serializable {
     @Type(type = "org.hibernate.type.UUIDCharType")
     private UUID id;
 
+    @NotBlank
     @Column(nullable = false, length = 50)
     private String nome;
 
+    @NotBlank
     @Column(nullable = false, unique = true, length = 11)
     private String cpf;
 

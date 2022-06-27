@@ -1,14 +1,13 @@
 package com.coderbank.cliente.api.controller;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.validation.Valid;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,60 +16,66 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.coderbank.cliente.api.assembler.ClienteModelAssembler;
+import com.coderbank.cliente.domain.model.Cliente;
 import com.coderbank.cliente.domain.model.dto.ClienteDTO;
+import com.coderbank.cliente.domain.repository.ClienteRepository;
 import com.coderbank.cliente.domain.service.ClienteService;
 
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api/clientes")
 public class ClienteController {
+
+    @Autowired
+    private ClienteRepository clienteRepository;
     
     @Autowired
     private ClienteService clienteService;
 
-    @PostMapping
-    public ResponseEntity<Object> saveCliente(@RequestBody @Valid ClienteDTO clienteDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.save(clienteDTO));
-    }
+    @Autowired
+    private ClienteModelAssembler clienteModelAssembler;
 
     @GetMapping
-    public ResponseEntity<List<ClienteDTO>> getAllClientes() {
-        return ResponseEntity.status(HttpStatus.OK).body(clienteService.findAll());
+    public List<ClienteDTO> listar() {
+        List<Cliente> todosClientes = clienteRepository.findAll();
+
+        return clienteModelAssembler.toCollectionModel(todosClientes);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Object> getOneCliente(@PathVariable(value = "id") UUID id) {
-        Optional<ClienteDTO> clienteDTOOptional = clienteService.findById(id);
+    @GetMapping("/{clienteId}")
+    public ClienteDTO buscar(@PathVariable UUID clienteId) {
+        Cliente cliente = clienteService.buscarOuFalhar(clienteId);
 
-        return clienteDTOOptional.<ResponseEntity<Object>>map(
-            clienteDTO -> ResponseEntity.status(HttpStatus.OK).body(clienteDTO)).orElseGet(() -> 
-                ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente não encontrado."));
+        return clienteModelAssembler.toModel(cliente);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteCliente(@PathVariable(value = "id") UUID id){
-        Optional<ClienteDTO> clienteDTOOptional = clienteService.findById(id);
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ClienteDTO adicionar(@RequestBody @Valid Cliente cliente) {
+        cliente = clienteService.salvar(cliente);
 
-        if (clienteDTOOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente não encontrado.");
-        }
-
-        clienteService.delete(clienteDTOOptional.get());
-        return ResponseEntity.status(HttpStatus.OK).body("Cliente excluído com sucesso.");
+        return clienteModelAssembler.toModel(cliente);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Object> updateCliente(@PathVariable(value = "id") UUID id,
-            @RequestBody @Valid ClienteDTO clienteDTORequest) {
-        Optional<ClienteDTO> clienteDTOOptional = clienteService.findById(id);
+    @PutMapping("/{clienteId}")
+    public ClienteDTO atualizar(@PathVariable @Valid UUID clienteId,
+            @RequestBody @Valid Cliente cliente) {
+        Cliente clienteAtual = clienteService.buscarOuFalhar(clienteId);
+        
+        BeanUtils.copyProperties(cliente, clienteAtual, "id");
+        clienteAtual = clienteService.salvar(clienteAtual);
 
-        if (clienteDTOOptional.isPresent()){
-            return ResponseEntity.status(HttpStatus.OK).body(clienteService.save(clienteDTORequest));
-        }
+        return clienteModelAssembler.toModel(clienteAtual);
+    }
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente não encontrado.");
+    @DeleteMapping("/{clienteId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remover(@PathVariable UUID clienteId) {
+        clienteService.excluir(clienteId);
     }
 
 }
