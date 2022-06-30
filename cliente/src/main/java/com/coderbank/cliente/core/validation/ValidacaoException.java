@@ -1,4 +1,4 @@
-package com.coderbank.cliente.core.modelmapper.validation;
+package com.coderbank.cliente.core.validation;
 
 import org.springframework.validation.BindingResult;
 

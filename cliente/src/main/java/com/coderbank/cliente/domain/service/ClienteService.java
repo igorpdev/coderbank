@@ -9,6 +9,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.coderbank.cliente.domain.exception.ClienteNotFoundException;
+import com.coderbank.cliente.domain.exception.NegocioException;
 import com.coderbank.cliente.domain.model.Cliente;
 import com.coderbank.cliente.domain.repository.ClienteRepository;
 
@@ -20,6 +21,13 @@ public class ClienteService {
 
     @Transactional
     public Cliente salvar(Cliente cliente) {
+        var clienteExistente = clienteRepository.findByCpf(cliente.getCpf());
+
+        if (clienteExistente.isPresent() && !clienteExistente.get().equals(cliente)) {
+            throw new NegocioException(
+                String.format("Já existe um cliente cadastrado com o CPF %s", cliente.getCpf()));
+        }
+
         return clienteRepository.save(cliente);
     }
 

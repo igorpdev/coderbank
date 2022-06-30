@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import com.coderbank.cliente.core.modelmapper.validation.ValidacaoException;
+import com.coderbank.cliente.core.validation.ValidacaoException;
 import com.coderbank.cliente.domain.exception.EntidadeNotFoundException;
 import com.coderbank.cliente.domain.exception.NegocioException;
 
